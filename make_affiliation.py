@@ -6,7 +6,7 @@
 import csv
 
 # Config
-history_file = "data/final_history_output-sample.csv"
+history_file = "data/final_history_output.csv"
 skipped_file = "output/history_skipped.csv"
 edges_file = "output/editor_article.csv"
 
@@ -24,7 +24,7 @@ try:
         if i == 0:
             continue
         try:
-            if i % 10000 == 0:
+            if i % 100000 == 0:
                 print "Starting row %d" % i
             if len(row) != 14:
                 raise AssertionError
