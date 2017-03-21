@@ -17,15 +17,16 @@ try:
     f_edges = open(edges_file, "wb")
 
     # Load edges into memory    
-    user_articles = {}
+    article_users = {}
     reader = csv.reader(f_hist)
+    print "Parsing CSV"
     for i, row in enumerate(reader):
+        if i % 100000 == 0:
+            print "Starting row %d" % i
         # Skip header
         if i == 0:
             continue
         try:
-            if i % 100000 == 0:
-                print "Starting row %d" % i
             if len(row) != 14:
                 raise AssertionError
             page_namespace = row[1]
@@ -39,18 +40,24 @@ try:
             if len(page_id) == 0:
                 raise AssertionError
             try:
-                articles = user_articles[int(user_id)]
+                users = article_users[int(page_id)]
             except KeyError:
-                articles = set()
-                user_articles[int(user_id)] = articles
-            articles.add(int(page_id))
+                users = set()
+                article_users[int(page_id)] = users
+            users.add(int(user_id))
         except AssertionError:
             f_skipped.write(",".join([str(i)] + row) + "\n")
     
     # Write edges to file
-    for user_id in sorted(user_articles.keys()):
-        for page_id in sorted(list(user_articles[user_id])):
-            f_edges.write(",".join([str(user_id), str(page_id)]) + "\n")    
+    print "Sorting edges"
+    # Sort page_id from from largest number of users to smallest
+    size_id = sorted([(len(article_users[page_id]), page_id) for page_id in article_users.keys()], reverse=True)
+    print "Writing edges"
+    f_edges.write("node_id,community_id,member_prob\n")
+    for i, d in enumerate(size_id):
+        page_id = d[1]
+        for user_id in sorted(list(article_users[page_id])):
+            f_edges.write(",".join([str(user_id), str(i), "1.0"]) + "\n")    
 finally:
     try:
         f_hist.close()
