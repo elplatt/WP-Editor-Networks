@@ -75,7 +75,7 @@ try:
                     blacklist.add(user_name)
                     f_blacklist.write(user_name + "\n")
             except KeyError:
-                user_ids[user_name] = user_id
+                user_ids[user_name] = int(user_id)
         except AssertionError:
             f_skipped.write(",".join([str(i)] + row) + "\n")
     
