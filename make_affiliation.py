@@ -10,6 +10,7 @@ history_file = "data/final_history_output.csv"
 skipped_file = "output/history_skipped.csv"
 edges_file = "output/editor_article.csv"
 
+dates = ["2007-03-23"]
 
 try:
     f_hist = open(history_file, "rb")
@@ -29,10 +30,13 @@ try:
         try:
             if len(row) != 14:
                 raise AssertionError
+            # Skip entries outside the configured date range
+            if row[6][0:10] not in dates:
+                continue
             page_namespace = row[1]
             user_id = row[8]
             page_id = row[2]
-            if page_namespace != "0":
+            if page_namespace != "0" and page_namespace != "1":
                 continue
             if user_id == "0" or len(user_id) == 0:
                 # Anonymous, skip
@@ -56,6 +60,9 @@ try:
     f_edges.write("node_id,community_id,member_prob\n")
     for i, d in enumerate(size_id):
         page_id = d[1]
+        # Skip articles with only a couple editors
+        if len(article_users[page_id]) < 3:
+            continue
         for user_id in sorted(list(article_users[page_id])):
             f_edges.write(",".join([str(user_id), str(i), "1.0"]) + "\n")    
 finally:
