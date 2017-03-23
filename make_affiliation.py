@@ -10,7 +10,7 @@ history_file = "data/final_history_output.csv"
 skipped_file = "output/history_skipped.csv"
 edges_file = "output/editor_article.csv"
 
-dates = ["2007-03-23"]
+dates = ["2007-03-23", "2007-03-24", "2007-03-25", "2007-03-26", "2007-03-27", "2007-03-28", "2007-03-29", ]
 
 try:
     f_hist = open(history_file, "rb")

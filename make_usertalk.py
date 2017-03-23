@@ -12,7 +12,7 @@ skipped_file = "output/history_skipped.csv"
 edges_file = "output/wpusertalk-edges.csv"
 blacklist_file = "output/user_blacklist.csv"
 
-dates = ["2007-03-23"]
+dates = ["2007-03-23", "2007-03-24", "2007-03-25", "2007-03-26", "2007-03-27", "2007-03-28", "2007-03-29", ]
 
 # Regular expressions
 usertalk_re = re.compile(
