@@ -45,15 +45,15 @@ try:
             if row[6][0:10] not in dates:
                 continue
             page_namespace = row[1]
-            # Get user id and skip if not part of user talk network
+            # Get user id and skip if anonymous or if not part of user talk network
             user_id = row[8]
+            if user_id == "0" or len(user_id) == 0:
+                # Anonymous, skip
+                continue
             if (int(user_id) not in user_ids):
                 continue
             page_id = row[2]
             if page_namespace != "0" and page_namespace != "1":
-                continue
-            if user_id == "0" or len(user_id) == 0:
-                # Anonymous, skip
                 continue
             if len(page_id) == 0:
                 raise AssertionError
