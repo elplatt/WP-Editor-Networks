@@ -4,50 +4,35 @@
 # page_title, page_namespace, page_id, redirect, rev_num, rev_id, timestamp, user_name, user_id, rev_minor, rev_comment, rev_bytes, rev_bytes_diff, rev_deleted
 
 import csv
-import re
 
 # Config
 history_file = "data/final_history_output.csv"
 skipped_file = "output/history_skipped.csv"
-edges_file = "output/usertalk_edges.csv"
-blacklist_file = "output/user_blacklist.csv"
+edges_file = "output/editor_article.csv"
 
-# Regular expressions
-usertalk_re = re.compile(
-    "User talk:(.+)"
-)
-ip_re = re.compile(
-    "\d+\.\d+\.\d+\.\d+"
-)
 
 try:
     f_hist = open(history_file, "rb")
     f_skipped = open(skipped_file, "wb")
     f_edges = open(edges_file, "wb")
-    f_blacklist = open(blacklist_file, "wb")
 
-    # Load edges into memory
-    user_ids = {}
-    source_targets = {}
-    blacklist = set()
+    # Load edges into memory    
+    article_users = {}
     reader = csv.reader(f_hist)
     print "Parsing CSV"
     for i, row in enumerate(reader):
         if i % 100000 == 0:
             print "Starting row %d" % i
-            print "  %d sources" % len(source_targets)
         # Skip header
         if i == 0:
             continue
         try:
             if len(row) != 14:
                 raise AssertionError
-            page_title = row[0]
             page_namespace = row[1]
-            user_name = row[7]
             user_id = row[8]
             page_id = row[2]
-            if page_namespace != "3":
+            if page_namespace != "0":
                 continue
             if user_id == "0" or len(user_id) == 0:
                 # Anonymous, skip
@@ -55,51 +40,28 @@ try:
             if len(page_id) == 0:
                 raise AssertionError
             try:
-                target_name, = re.match(usertalk_re, page_title).groups()
-                if re.match(ip_re, target_name):
-                    # Skip anonymous users
-                    continue
-            except TypeError:
-                raise AttributeError
-            # Add edge
-            try:
-                targets = source_targets[user_name]
+                users = article_users[int(page_id)]
             except KeyError:
-                targets = set()
-                source_targets[user_name] = targets
-            targets.add(target_name)
-            # Link id to name
-            try:
-                source_id = user_ids[user_name]
-                if source_id != int(user_id):
-                    blacklist.add(user_name)
-                    f_blacklist.write(user_name + "\n")
-            except KeyError:
-                user_ids[user_name] = int(user_id)
+                users = set()
+                article_users[int(page_id)] = users
+            users.add(int(user_id))
         except AssertionError:
             f_skipped.write(",".join([str(i)] + row) + "\n")
     
-    # Convert to undirected edges and deduplicate
-    print "Converting names to ids"
-    edges = set()
-    for source_id, targets in source_targets.iteritems():
-        for target in targets:
-            try:
-                target_id = user_ids[target]
-            except KeyError:
-                print "No user id: %s" % target
-                continue
-            edges.add( (min([source_id,target_id]), max([source_id,target_id])) )
-    
+    # Write edges to file
+    print "Sorting edges"
+    # Sort page_id from from largest number of users to smallest
+    size_id = sorted([(len(article_users[page_id]), page_id) for page_id in article_users.keys()], reverse=True)
     print "Writing edges"
-    f_edges.write("source_id,target_id\n")
-    for e in edges:
-        f_edges.write("%d,%d\n" % e)    
+    f_edges.write("node_id,community_id,member_prob\n")
+    for i, d in enumerate(size_id):
+        page_id = d[1]
+        for user_id in sorted(list(article_users[page_id])):
+            f_edges.write(",".join([str(user_id), str(i), "1.0"]) + "\n")    
 finally:
     try:
         f_hist.close()
         f_skipped.close()
         f_edges.close()
-        f_blacklist.close()
     except:
         pass
