@@ -102,7 +102,15 @@ try:
             except KeyError:
                 print "No user id: %s" % target
                 continue
+            # Skip users with inconsistent name-id pairs
+            if source_id in blacklist or target_id in blacklist:
+                continue
             edges.add( (min([source_id,target_id]), max([source_id,target_id])) )
+    
+    print "Network constructed with %d nodes and %d edges" % (
+        len(user_ids) - len(blacklist),
+        len(edges)
+    )
     
     print "Writing edges"
     f_edges.write("source_id,target_id\n")
