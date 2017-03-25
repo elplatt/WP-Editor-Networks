@@ -33,7 +33,7 @@ try:
     reader = csv.reader(f_hist)
     print "Parsing revision CSV"
     for i, row in enumerate(reader):
-        if i % 100000 == 0:
+        if i % 1000000 == 0:
             print "Starting row %d" % i
         # Skip header
         if i == 0:
@@ -72,12 +72,18 @@ try:
     size_id = sorted([(len(article_users[page_id]), page_id) for page_id in article_users.keys()], reverse=True)
     print "Writing edges"
     f_com.write("node_id,community_id,member_prob\n")
+    communities = set()
     for i, d in enumerate(size_id):
         page_id = d[1]
+        users = sorted(list(article_users[page_id]))
         # Skip articles with only a couple editors
-        if len(article_users[page_id]) < 3:
+        if len(users) < 3:
             continue
-        for user_id in sorted(list(article_users[page_id])):
+        # Skip communities articles with exact same community as previous
+        if tuple(users) in communities:
+            continue
+        communities.add(tuple(users))
+        for user_id in users:
             f_com.write(",".join([str(user_id), str(i), "1.0"]) + "\n")    
 finally:
     try:
